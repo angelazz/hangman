@@ -144,6 +144,11 @@ Here's this module being exercised from an iex session:
   def new_game do
       rword = Hangman.Dictionary.random_word()
 	  %{
+	    word: rword,
+	    times_left: 10,
+	    letter_guessed: MapSet.new,
+	    letter_left: check(rword)
+	   }
   end
 
 
@@ -154,6 +159,11 @@ Here's this module being exercised from an iex session:
   """
   @spec new_game(binary) :: state
   def new_game(word) do
+     %{
+	   word: word,
+	   times_left: 10,
+	   letter_guessed: MapSet.new,
+	   letter_left: check(word)
 	  }
   end
 
