@@ -142,6 +142,8 @@ Here's this module being exercised from an iex session:
 
   @spec new_game :: state
   def new_game do
+      rword = Hangman.Dictionary.random_word()
+	  %{
   end
 
 
@@ -152,6 +154,7 @@ Here's this module being exercised from an iex session:
   """
   @spec new_game(binary) :: state
   def new_game(word) do
+	  }
   end
 
 
@@ -177,8 +180,22 @@ Here's this module being exercised from an iex session:
 
   @spec make_move(state, ch) :: { state, atom, optional_ch }
   def make_move(state, guess) do
+      { matching_letter_guessed, state } = state |> pop_in([:letter_left,guess] )
+      state = %{ state| letter_guessed: MapSet.put(state.letter_guessed, guess) }	  
+	cond do	   
+	   state.letter_left |> Map.keys |> length ==0 
+	      ->{state, :won, nil}	
+	   matching_letter_guessed 
+	      ->{state, :good_guess, guess}		  
+	true->
+	     state = %{ state| times_left: state.times_left-1}
+	     if  (state.times_left == 0) do
+             { state, :lost, nil}
+		 else 
+		    {state, :bad_guess, guess}
+		 end
+	end 
   end
-
 
   @doc """
   `len = Hangman.Game.word_length(game)`
@@ -187,6 +204,7 @@ Here's this module being exercised from an iex session:
   """
   @spec word_length(state) :: integer
   def word_length(%{ word: word }) do
+        String.length(word)
   end
 
   @doc """
@@ -199,6 +217,7 @@ Here's this module being exercised from an iex session:
 
   @spec letters_used_so_far(state) :: [ binary ]
   def letters_used_so_far(state) do
+      MapSet.to_list(state.letter_guessed)
   end
 
   @doc """
@@ -211,6 +230,7 @@ Here's this module being exercised from an iex session:
 
   @spec turns_left(state) :: integer
   def turns_left(state) do
+       state.times_left
   end
 
   @doc """
@@ -224,6 +244,8 @@ Here's this module being exercised from an iex session:
 
   @spec word_as_string(state, boolean) :: binary
   def word_as_string(state, reveal \\ false) do
+      show_result(state, reveal)
+	  |> Enum.join(" ")
   end
 
   ###########################
@@ -231,5 +253,23 @@ Here's this module being exercised from an iex session:
   ###########################
 
   # Your private functions go here
+  
+  
+  defp show_result(state, true) do
+      String.codepoints(state.word)
+  end
+  
+  defp show_result(state, false) do
+      letter_guessed = [" " | letters_used_so_far(state) ] |> Enum.join
+      String.replace(state.word, ~r/[^#{letter_guessed}]/, "_")
+	  |>String.codepoints
+  end
+ 
+  def check(word) do
+   word
+   |> String.graphemes
+   |> Map.new(&{&1,true})
+  end
 
+  
  end
